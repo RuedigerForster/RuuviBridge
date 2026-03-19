@@ -66,6 +66,7 @@ type CalculatedData struct {
 	EquilibriumVaporPressure *float64 `json:"equilibriumVaporPressure,omitempty"`
 	AirDensity               *float64 `json:"airDensity,omitempty"`
 	AirViscosity             *float64 `json:"airViscosity,omitempty"`
+	KinematicViscosity       *float64 `json:"kinematicViscosity,omitempty"`
 	AccelerationAngleFromX   *float64 `json:"accelerationAngleFromX,omitempty"`
 	AccelerationAngleFromY   *float64 `json:"accelerationAngleFromY,omitempty"`
 	AccelerationAngleFromZ   *float64 `json:"accelerationAngleFromZ,omitempty"`
