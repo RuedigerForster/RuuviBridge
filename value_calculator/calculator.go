@@ -31,8 +31,56 @@ func CalcExtendedValues(m *parser.Measurement) {
 		v := math.Log((*m.Humidity) / 100 * (*m.EquilibriumVaporPressure) / 611.2)
 		m.DewPoint = f64(-243.5 * v / (v - 17.67))
 	}
-	if m.Temperature != nil && m.Humidity != nil && m.Pressure != nil && m.EquilibriumVaporPressure != nil {
-		m.AirDensity = f64(1.2929 * 273.15 / (*m.Temperature + 273.15) * (float64(*m.Pressure) - 0.3783*(*m.Humidity)/100*(*m.EquilibriumVaporPressure)) / 101300)
+	if m.Temperature != nil && m.Humidity != nil && m.Pressure != nil {
+		// CIPM-2007: Picard, Davis, Gläser, Fuji — revised formula for the density of moist air
+		// Pressure input is in Pa; temperature in °C; humidity in %; CO2 in ppm (optional)
+		const R = 8.31447215      // gas constant J/(mol·K)
+		const M_v = 18.0152817e-3 // molar mass of water vapour kg/mol
+		const cA = 1.2378847e-5
+		const cB = -1.9121316e-2
+		const cC = 33.93711047
+		const cD = -6.3431645e3
+		const cAlpha = 1.00062
+		const cBeta = 3.14e-8
+		const cGamma = 5.6e-7
+		const ca0 = 1.58123e-6
+		const ca1 = -2.9331e-8
+		const ca2 = 1.1043e-10
+		const cb0 = 5.707e-6
+		const cb1 = -2.051e-8
+		const cc0 = 1.9898e-4
+		const cc1 = -2.376e-6
+		const cd = 1.83e-11
+		const ce = -0.765e-8
+
+		M_a := 28.96546e-3 // molar mass of dry air kg/mol
+		if m.CO2 != nil {
+			xCO2 := *m.CO2 / 1e6 // ppm to mole fraction
+			if xCO2 >= 0.0004 {
+				M_a += 12.011e-3 * (xCO2 - 0.0004)
+			}
+		}
+
+		t := *m.Temperature
+		P := *m.Pressure // Pa
+		T := t + 273.15  // K
+
+		// Saturation vapour pressure (BIPM formula)
+		pSV := math.Exp(cA*T*T + cB*T + cC + cD/T)
+
+		// Enhancement factor
+		f := cAlpha + cBeta*P + cGamma*t*t
+
+		// Mole fraction of water vapour
+		xH2O := (*m.Humidity / 100) * f * pSV / P
+
+		// Compressibility factor
+		Z := 1 - (P/T)*(ca0+ca1*t+ca2*t*t+
+			(cb0+cb1*t)*xH2O+
+			(cc0+cc1*t)*xH2O*xH2O+
+			P*P/T/T*(cd+ce*xH2O*xH2O))
+
+		m.AirDensity = f64(P * M_a / Z / R / T * (1 - xH2O*(1-M_v/M_a)))
 	}
 	if m.Pm2p5 != nil && m.CO2 != nil {
 		const aqiMax = 100.0
