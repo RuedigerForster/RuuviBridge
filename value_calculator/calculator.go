@@ -92,7 +92,7 @@ func CalcExtendedValues(m *parser.Measurement) {
 		m.AirViscosity = f64(muRef * math.Pow(T/tRef, 1.5) * (tRef + s) / (T + s))
 	}
 	if m.AirViscosity != nil && m.AirDensity != nil && *m.AirDensity != 0 {
-		m.KinematicViscosity = f64(*m.AirViscosity / *m.AirDensity)
+		m.KinematicViscosity = f64(*m.AirViscosity / *m.AirDensity * 1e6) // mm²/s
 	}
 	if m.Pm2p5 != nil && m.CO2 != nil {
 		const aqiMax = 100.0
