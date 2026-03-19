@@ -82,6 +82,15 @@ func CalcExtendedValues(m *parser.Measurement) {
 
 		m.AirDensity = f64(P * M_a / Z / R / T * (1 - xH2O*(1-M_v/M_a)))
 	}
+	if m.Temperature != nil {
+		// Sutherland's formula for dynamic viscosity of air in Pa·s
+		// Reference: μ_ref=18.27 μPa·s at T_ref=291.15 K, Sutherland constant S=120 K
+		const muRef = 18.27e-6
+		const tRef = 291.15
+		const s = 120.0
+		T := *m.Temperature + 273.15
+		m.AirViscosity = f64(muRef * math.Pow(T/tRef, 1.5) * (tRef + s) / (T + s))
+	}
 	if m.Pm2p5 != nil && m.CO2 != nil {
 		const aqiMax = 100.0
 		const pm25Min = 0.0
