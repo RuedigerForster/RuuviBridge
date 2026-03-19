@@ -72,6 +72,7 @@ func InfluxDB3(conf config.InfluxDB3Publisher) chan<- parser.Measurement {
 				influx3AddFloat(p, "dewPoint", measurement.DewPoint)
 				influx3AddFloat(p, "equilibriumVaporPressure", measurement.EquilibriumVaporPressure)
 				influx3AddFloat(p, "airDensity", measurement.AirDensity)
+				influx3AddFloat(p, "airViscosity", measurement.AirViscosity)
 				influx3AddFloat(p, "accelerationAngleFromX", measurement.AccelerationAngleFromX)
 				influx3AddFloat(p, "accelerationAngleFromY", measurement.AccelerationAngleFromY)
 				influx3AddFloat(p, "accelerationAngleFromZ", measurement.AccelerationAngleFromZ)
