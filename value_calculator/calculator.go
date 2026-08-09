@@ -6,6 +6,23 @@ import (
 	"github.com/Scrin/RuuviBridge/parser"
 )
 
+// CIPM-2007 / BIPM saturation vapour pressure coefficients (psv in Pa, T in K).
+const (
+	cipmA = 1.2378847e-5
+	cipmB = -1.9121316e-2
+	cipmC = 33.93711047
+	cipmD = -6.3431645e3
+)
+
+// cipmPsv returns the saturation vapour pressure of water (Pa) at temperature
+// tK (Kelvin) per the CIPM-2007 / BIPM formula psv = exp(A·T² + B·T + C + D/T).
+// It is the single source of truth for saturation vapour pressure, shared by the
+// EquilibriumVaporPressure field, the dew point and the moist-air density, so all
+// humidity-derived values stay mutually consistent.
+func cipmPsv(tK float64) float64 {
+	return math.Exp(cipmA*tK*tK + cipmB*tK + cipmC + cipmD/tK)
+}
+
 func CalcExtendedValues(m *parser.Measurement) {
 	// from https://github.com/Scrin/RuuviCollector/blob/master/src/main/java/fi/tkgwf/ruuvi/utils/MeasurementValueCalculator.java
 	f64 := func(value float64) *float64 { return &value }
@@ -22,24 +39,38 @@ func CalcExtendedValues(m *parser.Measurement) {
 		m.AccelerationAngleFromZ = f64(math.Acos((*m.AccelerationZ)/(*m.AccelerationTotal)) * (180 / math.Pi))
 	}
 	if m.Temperature != nil {
-		m.EquilibriumVaporPressure = f64(611.2 * math.Exp(17.67*(*m.Temperature)/(243.5+(*m.Temperature))))
+		// CIPM-2007 / BIPM saturation vapour pressure (Pa), the same formula used
+		// by the moist-air density below (was previously a Magnus/Bolton fit).
+		m.EquilibriumVaporPressure = f64(cipmPsv(*m.Temperature + 273.15))
 	}
 	if m.Temperature != nil && m.Humidity != nil {
 		m.AbsoluteHumidity = f64((*m.EquilibriumVaporPressure) * (*m.Humidity) * 0.021674 / (273.15 + (*m.Temperature)))
 	}
-	if m.EquilibriumVaporPressure != nil && m.Humidity != nil && *m.Humidity != 0 {
-		v := math.Log((*m.Humidity) / 100 * (*m.EquilibriumVaporPressure) / 611.2)
-		m.DewPoint = f64(-243.5 * v / (v - 17.67))
+	if m.EquilibriumVaporPressure != nil && m.Temperature != nil && m.Humidity != nil && *m.Humidity > 0 {
+		// Dew point: invert the same CIPM saturation curve numerically (Newton),
+		// so Td is consistent with EquilibriumVaporPressure instead of a Magnus fit.
+		e := (*m.Humidity / 100) * (*m.EquilibriumVaporPressure) // actual vapour pressure (Pa)
+		td := *m.Temperature                                     // start from air temperature (°C)
+		for i := 0; i < 30; i++ {
+			tK := td + 273.15
+			psv := cipmPsv(tK)
+			dpsv := psv * (2*cipmA*tK + cipmB - cipmD/(tK*tK)) // d(psv)/dT
+			if dpsv == 0 {
+				break
+			}
+			step := (psv - e) / dpsv
+			td -= step
+			if math.Abs(step) < 1e-7 {
+				break
+			}
+		}
+		m.DewPoint = f64(td)
 	}
 	if m.Temperature != nil && m.Humidity != nil && m.Pressure != nil {
 		// CIPM-2007: Picard, Davis, Gläser, Fuji — revised formula for the density of moist air
 		// Pressure input is in Pa; temperature in °C; humidity in %; CO2 in ppm (optional)
 		const R = 8.31447215      // gas constant J/(mol·K)
 		const M_v = 18.0152817e-3 // molar mass of water vapour kg/mol
-		const cA = 1.2378847e-5
-		const cB = -1.9121316e-2
-		const cC = 33.93711047
-		const cD = -6.3431645e3
 		const cAlpha = 1.00062
 		const cBeta = 3.14e-8
 		const cGamma = 5.6e-7
@@ -65,8 +96,8 @@ func CalcExtendedValues(m *parser.Measurement) {
 		P := *m.Pressure // Pa
 		T := t + 273.15  // K
 
-		// Saturation vapour pressure (BIPM formula)
-		pSV := math.Exp(cA*T*T + cB*T + cC + cD/T)
+		// Saturation vapour pressure (CIPM/BIPM formula) — shared with EVP and dew point
+		pSV := cipmPsv(T)
 
 		// Enhancement factor
 		f := cAlpha + cBeta*P + cGamma*t*t
