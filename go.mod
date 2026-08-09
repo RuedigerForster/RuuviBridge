@@ -1,13 +1,12 @@
 module github.com/Scrin/RuuviBridge
 
-go 1.23.10
-
-toolchain go1.24.0
+go 1.25.0
 
 require (
 	github.com/InfluxCommunity/influxdb3-go/v2 v2.8.0
 	github.com/eclipse/paho.mqtt.golang v1.5.0
 	github.com/influxdata/influxdb-client-go/v2 v2.14.0
+	github.com/jackc/pgx/v5 v5.10.0
 	github.com/prometheus/client_golang v1.22.0
 	github.com/rs/zerolog v1.33.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -26,6 +25,9 @@ require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/influxdata/line-protocol/v2 v2.2.1 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -38,12 +40,12 @@ require (
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
-	golang.org/x/mod v0.25.0 // indirect
-	golang.org/x/net v0.41.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
-	golang.org/x/tools v0.34.0 // indirect
+	golang.org/x/mod v0.27.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/tools v0.36.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
 	google.golang.org/grpc v1.73.0 // indirect

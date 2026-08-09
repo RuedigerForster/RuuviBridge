@@ -92,6 +92,10 @@ func Run(config config.Config) {
 		sinks = append(sinks, data_sinks.InfluxDB3(*config.InfluxDB3Publisher))
 		datasinksStarted = true
 	}
+	if config.TimescaleDBPublisher != nil && (config.TimescaleDBPublisher.Enabled == nil || *config.TimescaleDBPublisher.Enabled) {
+		sinks = append(sinks, data_sinks.TimescaleDB(*config.TimescaleDBPublisher))
+		datasinksStarted = true
+	}
 	if config.Prometheus != nil && (config.Prometheus.Enabled == nil || *config.Prometheus.Enabled) {
 		sinks = append(sinks, data_sinks.Prometheus(*config.Prometheus))
 		datasinksStarted = true

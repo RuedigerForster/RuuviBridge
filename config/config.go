@@ -64,6 +64,19 @@ type InfluxDB3Publisher struct {
 	AdditionalTags  map[string]string `yaml:"additional_tags,omitempty"`
 }
 
+type TimescaleDBPublisher struct {
+	Enabled         *bool         `yaml:"enabled,omitempty"`
+	MinimumInterval time.Duration `yaml:"minimum_interval,omitempty"`
+	Host            string        `yaml:"host"`
+	Port            int           `yaml:"port"`
+	User            string        `yaml:"user"`
+	Password        string        `yaml:"password"`
+	Database        string        `yaml:"database"`
+	SSLMode         string        `yaml:"sslmode"`
+	Table           string        `yaml:"table"`
+	SensorsTable    string        `yaml:"sensors_table"`
+}
+
 type Prometheus struct {
 	Enabled                 *bool  `yaml:"enabled,omitempty"`
 	Port                    int    `yaml:"port"`
@@ -96,17 +109,18 @@ type Logging struct {
 }
 
 type Config struct {
-	GatewayPolling     *GatewayPolling     `yaml:"gateway_polling,omitempty"`
-	MQTTListener       *MQTTListener       `yaml:"mqtt_listener,omitempty"`
-	HTTPListener       *HTTPListener       `yaml:"http_listener,omitempty"`
-	Processing         *Processing         `yaml:"processing,omitempty"`
-	InfluxDBPublisher  *InfluxDBPublisher  `yaml:"influxdb_publisher,omitempty"`
-	InfluxDB3Publisher *InfluxDB3Publisher `yaml:"influxdb3_publisher,omitempty"`
-	Prometheus         *Prometheus         `yaml:"prometheus,omitempty"`
-	MQTTPublisher      *MQTTPublisher      `yaml:"mqtt_publisher,omitempty"`
-	TagNames           map[string]string   `yaml:"tag_names,omitempty"`
-	Logging            Logging             `yaml:"logging"`
-	Debug              bool                `yaml:"debug"`
+	GatewayPolling       *GatewayPolling       `yaml:"gateway_polling,omitempty"`
+	MQTTListener         *MQTTListener         `yaml:"mqtt_listener,omitempty"`
+	HTTPListener         *HTTPListener         `yaml:"http_listener,omitempty"`
+	Processing           *Processing           `yaml:"processing,omitempty"`
+	InfluxDBPublisher    *InfluxDBPublisher    `yaml:"influxdb_publisher,omitempty"`
+	InfluxDB3Publisher   *InfluxDB3Publisher   `yaml:"influxdb3_publisher,omitempty"`
+	TimescaleDBPublisher *TimescaleDBPublisher `yaml:"timescaledb_publisher,omitempty"`
+	Prometheus           *Prometheus           `yaml:"prometheus,omitempty"`
+	MQTTPublisher        *MQTTPublisher        `yaml:"mqtt_publisher,omitempty"`
+	TagNames             map[string]string     `yaml:"tag_names,omitempty"`
+	Logging              Logging               `yaml:"logging"`
+	Debug                bool                  `yaml:"debug"`
 }
 
 func ReadConfig(configFile string, strict bool) (Config, error) {
