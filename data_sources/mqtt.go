@@ -45,6 +45,7 @@ func StartMQTTListener(conf config.MQTTListener, measurements chan<- parser.Meas
 
 	log.Info().Msg("Starting MQTT subscriber")
 
+	seen := newDedup()
 	messagePubHandler := func(client mqtt.Client, msg mqtt.Message) {
 		topic := msg.Topic()
 		var message message
@@ -55,6 +56,10 @@ func StartMQTTListener(conf config.MQTTListener, measurements chan<- parser.Meas
 		}
 
 		mac := strings.ToUpper(topic[strings.LastIndex(topic, "/")+1:])
+		if seen.duplicate(mac, message.Data, time.Now()) {
+			log.Trace().Str("mac", mac).Msg("Duplicate advertisement dropped")
+			return
+		}
 		timestamp, _ := strconv.ParseInt(fmt.Sprint(message.Ts), 10, 64)
 
 		measurement, ok := parser.Parse(message.Data)
