@@ -86,10 +86,8 @@ func CalcExtendedValues(m *parser.Measurement) {
 
 		M_a := 28.96546e-3 // molar mass of dry air kg/mol
 		if m.CO2 != nil {
-			xCO2 := *m.CO2 / 1e6 // ppm to mole fraction
-			if xCO2 >= 0.0004 {
-				M_a += 12.011e-3 * (xCO2 - 0.0004)
-			}
+			xCO2 := *m.CO2 / 1e6               // ppm to mole fraction
+			M_a += 12.011e-3 * (xCO2 - 0.0004) // CIPM-2007 correction, both directions
 		}
 
 		t := *m.Temperature
@@ -105,11 +103,14 @@ func CalcExtendedValues(m *parser.Measurement) {
 		// Mole fraction of water vapour
 		xH2O := (*m.Humidity / 100) * f * pSV / P
 
-		// Compressibility factor
+		// Compressibility factor:
+		// Z = 1 - p/T [a0 + a1 t + a2 t² + (b0 + b1 t) x_v + (c0 + c1 t) x_v²] + p²/T² (d + e x_v²).
+		// The d/e term is outside the bracket; until 01.11.2026 it was inside (multiplied by -p/T),
+		// giving Z = 0.998885 instead of 0.999643 at 20 °C, 101325 Pa and a density +760 ppm too high.
 		Z := 1 - (P/T)*(ca0+ca1*t+ca2*t*t+
 			(cb0+cb1*t)*xH2O+
-			(cc0+cc1*t)*xH2O*xH2O+
-			P*P/T/T*(cd+ce*xH2O*xH2O))
+			(cc0+cc1*t)*xH2O*xH2O) +
+			P*P/T/T*(cd+ce*xH2O*xH2O)
 
 		m.AirDensity = f64(P * M_a / Z / R / T * (1 - xH2O*(1-M_v/M_a)))
 	}
