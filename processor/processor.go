@@ -120,7 +120,7 @@ func Run(config config.Config) {
 			continue
 		}
 
-		if slices.Contains(config.Processing.DisableFormats, fmt.Sprintf("%X", measurement.DataFormat)) {
+		if config.Processing != nil && slices.Contains(config.Processing.DisableFormats, fmt.Sprintf("%X", measurement.DataFormat)) {
 			log.Trace().Str("mac", measurement.Mac).Str("data_format", fmt.Sprintf("%X", measurement.DataFormat)).Msg("Measurement dropped")
 			continue
 		}
