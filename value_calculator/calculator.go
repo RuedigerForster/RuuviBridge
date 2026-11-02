@@ -69,8 +69,8 @@ func CalcExtendedValues(m *parser.Measurement) {
 	if m.Temperature != nil && m.Humidity != nil && m.Pressure != nil {
 		// CIPM-2007: Picard, Davis, Gläser, Fuji — revised formula for the density of moist air
 		// Pressure input is in Pa; temperature in °C; humidity in %; CO2 in ppm (optional)
-		const R = 8.31447215      // gas constant J/(mol·K)
-		const M_v = 18.0152817e-3 // molar mass of water vapour kg/mol
+		const R = 8.314472      // gas constant J/(mol·K), CODATA 2006 as in Picard et al.: 8.314 472(15)
+		const M_v = 18.01528e-3 // molar mass of water vapour kg/mol; paper 18.015 28(17), (17) = uncertainty
 		const cAlpha = 1.00062
 		const cBeta = 3.14e-8
 		const cGamma = 5.6e-7
